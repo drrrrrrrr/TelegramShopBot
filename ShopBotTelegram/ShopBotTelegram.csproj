@@ -162,6 +162,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Updates\LastUpDate.cs" />
+    <Compile Include="Updates\TelegramUpdate.cs" />
     <Compile Include="Updates\UpdateReceive.cs" />
     <Compile Include="Updates\UpdatesSchelduer.cs" />
   </ItemGroup>
