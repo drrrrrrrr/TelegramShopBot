@@ -9,7 +9,7 @@ namespace ShopBotTelegram.Updates
     public class LastUpDate
     {
         public int Id{ get; set; }
-        public string Lastupdate { get; set; }
+        public long Lastupdate { get; set; }
     }
     public class UpdateDbContext:DbContext
     {
