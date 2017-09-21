@@ -29,12 +29,14 @@ namespace ShopBotTelegram.Updates
             {
                 lastUpdate = item.update_id;
                 SendAnswer(item.message.chat.id, item.message.text);
+                 
             }
             using (UpdateDbContext bd = new UpdateDbContext())
             {
                 bd.LastUpDates.First().Lastupdate = lastUpdate;
                 bd.SaveChanges();
             }
+         
           
 
         }
@@ -43,21 +45,23 @@ namespace ShopBotTelegram.Updates
             string answer = "";
             switch (message)
             {
-                case "привет": answer = "Пока"; break;
+                case "привет": InlineMenu(chat_id); answer = "Пока"; break;
                 case "как дела": answer = "Пошел"; break;
                 case "пвет": answer = "Покввввва"; break;
                 default: answer = "Вы написали какое то дерьмо " + message; break;
             }
-            MyMenu(chat_id);
+            
 
 
         }
-        void SendMessage(long chat_id, string message)
+        void SendMessage(long chat_id, string message,string reply_markup="")
         {
             string address = BaseUrl + token + "/sendMessage";
             NameValueCollection nvc = new NameValueCollection();
             nvc.Add("chat_id", chat_id.ToString());
             nvc.Add("text", message);
+            if (reply_markup != "")
+                nvc.Add("reply_markup", reply_markup);
             client.UploadValues(address, nvc);
 
         }
@@ -83,6 +87,18 @@ namespace ShopBotTelegram.Updates
             string reply_markup = JsonConvert.SerializeObject(tel);
             nvc.Add("reply_markup", reply_markup);
             client.UploadValues(address, nvc);
+
+        }
+        void InlineMenu(long chat_id)
+        {
+ 
+            InlineKeyboardButton button1 = new InlineKeyboardButton("ya", "ya.ru");
+            InlineKeyboardButton button2 = new InlineKeyboardButton("vk", "vk.ru");
+            List<InlineKeyboardButton> listInline = new List<InlineKeyboardButton> { button1, button2 };
+            List<List<InlineKeyboardButton>> listttInline = new List<List<InlineKeyboardButton>>() { listInline };
+            InlineKeyboard kb = new InlineKeyboard(listttInline);
+            string reply_markup = JsonConvert.SerializeObject(kb);
+            SendMessage(chat_id, "Inline_menu", reply_markup);
 
         }
 
