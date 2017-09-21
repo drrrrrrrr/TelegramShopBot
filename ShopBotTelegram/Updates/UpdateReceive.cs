@@ -48,7 +48,7 @@ namespace ShopBotTelegram.Updates
                 case "пвет": answer = "Покввввва"; break;
                 default: answer = "Вы написали какое то дерьмо " + message; break;
             }
-            SendMessage(chat_id, answer);
+            MyMenu(chat_id);
 
 
         }
@@ -58,6 +58,30 @@ namespace ShopBotTelegram.Updates
             NameValueCollection nvc = new NameValueCollection();
             nvc.Add("chat_id", chat_id.ToString());
             nvc.Add("text", message);
+            client.UploadValues(address, nvc);
+
+        }
+        void MyMenu(long chat_id)
+        {
+            string address = BaseUrl + token + "/sendMessage";
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("chat_id", chat_id.ToString());
+            nvc.Add("text", "привет");
+            List<string> keyboardb1 = new List<string>()
+            {
+                "Да","Нет"
+            };
+            List<string> keyboardb2 = new List<string>()
+            {
+                "Ура","Не Ура"
+            };
+            List<List<string>> keybord = new List<List<string>>()
+            {
+                keyboardb1,keyboardb2
+            };
+            TeleButtons tel = new TeleButtons(keybord);
+            string reply_markup = JsonConvert.SerializeObject(tel);
+            nvc.Add("reply_markup", reply_markup);
             client.UploadValues(address, nvc);
 
         }

@@ -172,6 +172,7 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Updates\LastUpDate.cs" />
+    <Compile Include="Updates\TeleButtons.cs" />
     <Compile Include="Updates\TelegramUpdate.cs" />
     <Compile Include="Updates\UpdateReceive.cs" />
     <Compile Include="Updates\UpdatesSchelduer.cs" />
