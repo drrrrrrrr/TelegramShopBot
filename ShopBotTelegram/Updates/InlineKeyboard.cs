@@ -12,6 +12,18 @@ namespace ShopBotTelegram.Updates
         {
             inline_keyboard = inline;
         }
+        public InlineKeyboard()
+        {
+            inline_keyboard = new List<List<InlineKeyboardButton>>();
+        }
+        public void AddButton(InlineKeyboardButton button)
+        {
+            inline_keyboard.Add(new List<InlineKeyboardButton> { button });
+        }
+        public void AddLine (List <InlineKeyboardButton> key)
+        {
+            inline_keyboard.Add(key);
+        }
 
     }
     public class InlineKeyboardButton

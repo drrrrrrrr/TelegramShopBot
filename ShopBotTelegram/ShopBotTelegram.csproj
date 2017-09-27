@@ -169,6 +169,10 @@
     <Compile Include="Migrations\201709201957477_MigrateDB.Designer.cs">
       <DependentUpon>201709201957477_MigrateDB.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709231100322_Updatedb.cs" />
+    <Compile Include="Migrations\201709231100322_Updatedb.Designer.cs">
+      <DependentUpon>201709231100322_Updatedb.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Updates\InlineKeyboard.cs" />
@@ -242,6 +246,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201709201957477_MigrateDB.resx">
       <DependentUpon>201709201957477_MigrateDB.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709231100322_Updatedb.resx">
+      <DependentUpon>201709231100322_Updatedb.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

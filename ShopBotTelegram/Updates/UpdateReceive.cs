@@ -16,20 +16,25 @@ namespace ShopBotTelegram.Updates
         string BaseUrl = "https://api.telegram.org/bot";
         WebClient client = new WebClient();
         UpdateDbContext bd = new UpdateDbContext();
-     
+              
         public void Execute(IJobExecutionContext context)
         {
+        
             long lastUpdate = bd.LastUpDates.First().Lastupdate;
             string addres = BaseUrl + token + "/getUpdates?offset=" + (lastUpdate + 1);
             string res = client.DownloadString(addres);
             var k = JsonConvert.DeserializeObject<TelegramUpdate>(res);
+          //  var kzz = bd.Categorys.ToArray();
             if (!k.ok || k.result.Length == 0)
                 return;
             foreach (Result item in k.result)
             {
                 lastUpdate = item.update_id;
-                SendAnswer(item.message.chat.id, item.message.text);
-                 
+                //   item.call_back.
+                if (item.message != null)
+                    AnswerIsMessage(item);
+                if (item.callback_query != null)
+                    AnswerIqQuery(item);    
             }
             using (UpdateDbContext bd = new UpdateDbContext())
             {
@@ -40,7 +45,7 @@ namespace ShopBotTelegram.Updates
           
 
         }
-        void SendAnswer(long chat_id, string message)
+        string SendAnswer(long chat_id, string message)
         {
             string answer = "";
             switch (message)
@@ -48,11 +53,42 @@ namespace ShopBotTelegram.Updates
                 case "привет": InlineMenu(chat_id); answer = "Пока"; break;
                 case "как дела": answer = "Пошел"; break;
                 case "пвет": answer = "Покввввва"; break;
+                case "меню":MenuFrombd(chat_id);break;
                 default: answer = "Вы написали какое то дерьмо " + message; break;
             }
-            
 
+            return answer;
 
+        }
+
+        private void MenuFrombd(long chat_id)
+        {
+            List<Category> categories;
+            List<InlineKeyboardButton> kb = new List<InlineKeyboardButton>();
+            using (UpdateDbContext db = new UpdateDbContext())
+            {
+               categories = db.Categorys.ToList();
+            }
+            InlineKeyboard keyboard = new InlineKeyboard();
+            foreach (var item in categories)
+            {
+                InlineKeyboardButton button = new InlineKeyboardButton(item.NameCategory, item.Id.ToString());
+                kb.Add(button);
+            }
+            keyboard.AddLine(kb);
+            string replyMarkup =JsonConvert.SerializeObject(keyboard);
+            SendMessage(chat_id, "Все категории", replyMarkup);
+        }
+
+        void AnswerIsMessage(Result item)
+        {
+         string answer= SendAnswer(item.message.chat.id, item.message.text);
+     //    SendMessage(item.message.chat.id, answer); ;
+        }
+        void AnswerIqQuery(Result item)
+        {
+         //   SendMessage(item.callback_query.from.id, "Здарова");
+            ChangeMessage(item);
         }
         void SendMessage(long chat_id, string message,string reply_markup="")
         {
@@ -99,6 +135,18 @@ namespace ShopBotTelegram.Updates
             InlineKeyboard kb = new InlineKeyboard(listttInline);
             string reply_markup = JsonConvert.SerializeObject(kb);
             SendMessage(chat_id, "Inline_menu", reply_markup);
+
+        }
+        void ChangeMessage(Result item,string reply_markup="")
+        {
+            string adress = BaseUrl + token + "/editMessageText";
+            NameValueCollection nvc = new NameValueCollection();
+            nvc.Add("chat_id", item.callback_query.message.chat.id.ToString());
+            nvc.Add("message_id", item.callback_query.message.message_id.ToString());
+            nvc.Add("text", item.callback_query.data);
+            if (reply_markup != "")
+                nvc.Add("reply_markup", reply_markup);
+           client.UploadValues(adress, nvc);
 
         }
 

@@ -4,14 +4,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Data.Entity;
+
 
 namespace ShopBotTelegram.Controllers
 {
     public class HomeController : Controller
     {
+      
         public ActionResult Index()
-        {   
-            return View();
+        {
+            List<Product> product;
+            using (UpdateDbContext db = new UpdateDbContext())
+            {
+                var products = db.Products.Include(p => p.Category);
+                product = products.ToList();
+                var cat = db.Categorys.ToList();
+                string s = "sadsa";
+            }
+           
+            return View(product);
         }
 
         public ActionResult About()
