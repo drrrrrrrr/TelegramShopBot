@@ -20,7 +20,7 @@ namespace ShopBotTelegram.Updates
                 .WithIdentity("trigger1", "group1")     // идентифицируем триггер с именем и группой
                 .StartNow()                            // запуск сразу после начала выполнения
                 .WithSimpleSchedule(x => x            // настраиваем выполнение действия
-                    .WithIntervalInSeconds(20)      // через 20 секунд
+                    .WithIntervalInSeconds(2)      // через 20 секунд
                     .RepeatForever())                   // бесконечное повторение
                 .Build();                               // создаем триггер
 

@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Web;
+using System.Data.Entity;
 using System.Web.Helpers;
 
 namespace ShopBotTelegram.Updates
@@ -32,7 +33,7 @@ namespace ShopBotTelegram.Updates
                 lastUpdate = item.update_id;
                 //   item.call_back.
                 if (item.message != null)
-                    AnswerIsMessage(item);
+                    SendAnswer(item.message.chat.id, item.message.text);
                 if (item.callback_query != null)
                     AnswerIqQuery(item);    
             }
@@ -45,23 +46,23 @@ namespace ShopBotTelegram.Updates
           
 
         }
-        string SendAnswer(long chat_id, string message)
+        void SendAnswer(long chat_id, string message)
         {
             string answer = "";
+            string reply_markup = "";
             switch (message)
             {
-                case "привет": InlineMenu(chat_id); answer = "Пока"; break;
-                case "как дела": answer = "Пошел"; break;
-                case "пвет": answer = "Покввввва"; break;
-                case "меню":MenuFrombd(chat_id);break;
-                default: answer = "Вы написали какое то дерьмо " + message; break;
+                case @"/start": answer = MainMenu(out reply_markup); break;
+                default: answer = "Я не знаю как ответить на  " + message; MainMenu(out reply_markup); break;
             }
-
-            return answer;
+            if (reply_markup != "")
+                SendMessage(chat_id, answer, reply_markup);
+            else
+                SendMessage(chat_id, answer);
 
         }
 
-        private void MenuFrombd(long chat_id)
+        private string MainMenu(out string reply_markup)
         {
             List<Category> categories;
             List<InlineKeyboardButton> kb = new List<InlineKeyboardButton>();
@@ -70,25 +71,101 @@ namespace ShopBotTelegram.Updates
                categories = db.Categorys.ToList();
             }
             InlineKeyboard keyboard = new InlineKeyboard();
+            int i = 0;
             foreach (var item in categories)
             {
-                InlineKeyboardButton button = new InlineKeyboardButton(item.NameCategory, item.Id.ToString());
-                kb.Add(button);
+                keyboard.AddButton(new InlineKeyboardButton(item.NameCategory, item.NameCategory),i++/2);
             }
-            keyboard.AddLine(kb);
-            string replyMarkup =JsonConvert.SerializeObject(keyboard);
-            SendMessage(chat_id, "Все категории", replyMarkup);
+            AddMainButton(keyboard);
+            reply_markup = JsonConvert.SerializeObject(keyboard);
+            return "Все категории магазина";
         }
 
         void AnswerIsMessage(Result item)
         {
-         string answer= SendAnswer(item.message.chat.id, item.message.text);
-     //    SendMessage(item.message.chat.id, answer); ;
+       
+     //   SendMessage(item.message.chat.id, answer); ;
         }
         void AnswerIqQuery(Result item)
         {
-         //   SendMessage(item.callback_query.from.id, "Здарова");
-            ChangeMessage(item);
+            //   SendMessage(item.callback_query.from.id, "Здарова");
+            //MenuFrombd(item.callback_query.from.id);
+            // ChangeMessage(item);
+
+            string answer = "";
+            string replyMarkup = "";
+            switch(item.callback_query.data)
+            {
+                case "?": answer = "Вопрос в лс";MainMenu(out replyMarkup); break;
+                case "about": answer = "Уэто магазин";MainMenu(out replyMarkup); break;
+                default:
+                    answer = Shop (item.callback_query.data,out replyMarkup);
+                        break;
+            }
+            answer += Environment.NewLine + item.callback_query.data;
+            ChangeMessage(item, answer, replyMarkup);
+        }
+        string Shop(string shop , out string reply_markup)
+        {
+            string answer = "Магазин продуктов" ;
+            reply_markup = "";
+            Category categories;
+            char[] spl = { ' ' };
+            string[] shops = shop.Split(spl,StringSplitOptions.RemoveEmptyEntries);
+            string ncat = shops[0];
+            string nproduct="q";
+            if (shops.Length>1)
+            nproduct = shops[1];
+            Product pr=new Product();
+            List<InlineKeyboardButton> kb = new List<InlineKeyboardButton>();
+            using (UpdateDbContext db = new UpdateDbContext())
+            {
+                if (shops.Length == 1)
+                {
+                    var product = db.Products.ToList();
+                    categories = db.Categorys.Where(x => x.NameCategory == ncat).First();
+                }
+                else
+                {
+                    var product = db.Products.ToList();
+                    //categories = db.Categorys.Where(x => x.NameCategory == ncat).First();
+                    categories = db.Categorys.Where(x => x.NameCategory == ncat).First();
+                    pr = categories.Products.Where(x => x.NameProduct == nproduct).First();
+                }
+            }
+            InlineKeyboard keyboard = new InlineKeyboard();
+            int i = 0;
+            if (shops.Length == 1)
+            {
+                foreach (var item in categories.Products)
+                {
+                    keyboard.AddButton(new InlineKeyboardButton(item.NameProduct,item.Category.NameCategory+" "+item.NameProduct), i++ / 2);
+                }
+            }
+            if(shops.Length>1)
+            {
+                foreach (var item in categories.Products)
+                {
+                    keyboard.AddButton(new InlineKeyboardButton(item.NameProduct, item.Category.NameCategory + " " + item.NameProduct), i++ / 2);
+                }
+                answer = pr.NameProduct +"    " + pr.Price +"   " + pr.Description;
+            }
+            AddMainButton(keyboard);
+            reply_markup = JsonConvert.SerializeObject(keyboard);
+          
+
+            return answer;
+        }
+        void AddMainButton(InlineKeyboard keyboard)
+        {
+            List<InlineKeyboardButton> line = new List<InlineKeyboardButton>()
+            {
+                new InlineKeyboardButton("Есть вопрос","?"),
+                new InlineKeyboardButton("О нас","about")
+            };
+            keyboard.AddLine(line);
+
+
         }
         void SendMessage(long chat_id, string message,string reply_markup="")
         {
@@ -137,13 +214,13 @@ namespace ShopBotTelegram.Updates
             SendMessage(chat_id, "Inline_menu", reply_markup);
 
         }
-        void ChangeMessage(Result item,string reply_markup="")
+        void ChangeMessage(Result item,string message,string reply_markup="")
         {
             string adress = BaseUrl + token + "/editMessageText";
             NameValueCollection nvc = new NameValueCollection();
             nvc.Add("chat_id", item.callback_query.message.chat.id.ToString());
             nvc.Add("message_id", item.callback_query.message.message_id.ToString());
-            nvc.Add("text", item.callback_query.data);
+            nvc.Add("text", message);
             if (reply_markup != "")
                 nvc.Add("reply_markup", reply_markup);
            client.UploadValues(adress, nvc);

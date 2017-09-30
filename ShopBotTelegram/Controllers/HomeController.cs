@@ -17,8 +17,8 @@ namespace ShopBotTelegram.Controllers
             List<Product> product;
             using (UpdateDbContext db = new UpdateDbContext())
             {
-                var products = db.Products.Include(p => p.Category);
-                product = products.ToList();
+               // var products = db.Products.Include(p => p.Category);
+                product =db.Products.ToList();
                 var cat = db.Categorys.ToList();
                 string s = "sadsa";
             }

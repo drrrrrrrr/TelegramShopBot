@@ -24,6 +24,12 @@ namespace ShopBotTelegram.Updates
         {
             inline_keyboard.Add(key);
         }
+        public void AddButton(InlineKeyboardButton button,int n)
+        {
+            while (inline_keyboard.Count <= n)
+               inline_keyboard.Add(new List<InlineKeyboardButton>());
+             inline_keyboard[n].Add(button);
+        }
 
     }
     public class InlineKeyboardButton
